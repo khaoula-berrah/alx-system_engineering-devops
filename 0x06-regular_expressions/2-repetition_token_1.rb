@@ -1,13 +1,2 @@
 #!/usr/bin/env ruby
-
-regex = /hb(t{1,}n)/
-
-input = ARGV[0]
-
-match = input.match(regex)
-
-if match
-  puts match[0]
-else
-  puts ""
-end
+puts ARGV[0].scan(/hb?t?n/).join
