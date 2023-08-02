@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script as root"
+    exit 1
+fi
+
+# Backup the original /etc/hosts file
+cp /etc/hosts /etc/hosts.bak
+
+# Modify the /etc/hosts file
+sed -i 's/localhost/127.0.0.2/g' /etc/hosts
+sed -i 's/facebook.com/8.8.8.8/g' /etc/hosts
+
+echo "IP addresses changed successfully!"
+
+# Display the updated /etc/hosts file
+cat /etc/hosts
