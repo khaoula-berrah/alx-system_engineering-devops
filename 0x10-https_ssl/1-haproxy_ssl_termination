@@ -1,0 +1,10 @@
+frontend https_front
+        bind *:80
+        bind *:443 ssl crt /etc/haproxy/certs/www.khaoulaberrah.tech.pem
+        redirect scheme https code 301 if !{ ssl_fc }
+        default_backend web_servers
+
+backend http_back
+        balance roundrobin
+        server 368096-web-01 52.3.240.48:80 check
+        server 368096-web-02 18.204.9.207:80 check
