@@ -1,34 +1,40 @@
 #!/usr/bin/python3
-""" Script that uses JSONPlaceholder API to get information about employee """
+""" a Python script that, using this REST API, for a given employee ID """
 import csv
-import requests
+import json
 import sys
-
+import urllib.error
+import urllib.request
 
 if __name__ == "__main__":
-    url = 'https://jsonplaceholder.typicode.com/'
+    uid = sys.argv[1]
 
-    userid = sys.argv[1]
-    user = '{}users/{}'.format(url, userid)
-    res = requests.get(user)
-    json_o = res.json()
-    name = json_o.get('username')
+    users_url = 'https://jsonplaceholder.typicode.com/users/' + uid
+    todo_url = 'https://jsonplaceholder.typicode.com/todos/'
 
-    todos = '{}todos?userId={}'.format(url, userid)
-    res = requests.get(todos)
-    tasks = res.json()
-    l_task = []
-    for task in tasks:
-        l_task.append([userid,
-                       name,
-                       task.get('completed'),
-                       task.get('title')])
+    try:
+        with urllib.request.urlopen(users_url) as res:
+            data = res.read().decode('utf-8')
+            user = json.loads(data)
 
-    filename = '{}.csv'.format(userid)
-    with open(filename, mode='w') as employee_file:
-        employee_writer = csv.writer(employee_file,
-                                     delimiter=',',
-                                     quotechar='"',
-                                     quoting=csv.QUOTE_ALL)
-        for task in l_task:
-            employee_writer.writerow(task)
+        with urllib.request.urlopen(todo_url) as res:
+            data = json.loads(res.read().decode('utf-8'))
+            todos = []
+            for todo in data:
+                if todo['userId'] == int(uid):
+                    todos.append(todo)
+
+        with open("{}.csv".format(uid), 'w', newline='') as csvfile:
+            # Use csv.QUOTE_ALL to wrap every field in quotes
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+
+            for todo in todos:
+                writer.writerow([
+                    uid,
+                    user['username'],
+                    str(todo['completed']),
+                    todo['title']
+                ])
+
+    except urllib.error.URLError as e:
+        print(f"Error fetching the URL: {e.reason}")

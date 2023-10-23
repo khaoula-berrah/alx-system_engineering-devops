@@ -1,30 +1,40 @@
 #!/usr/bin/python3
-""" Script that uses JSONPlaceholder API to get information about employee """
+""" a Python script that, using this REST API, for a given employee ID """
 import json
-import requests
 import sys
-
+import urllib.error
+import urllib.request
 
 if __name__ == "__main__":
-    url = 'https://jsonplaceholder.typicode.com/'
+    uid = sys.argv[1]
 
-    userid = sys.argv[1]
-    user = '{}users/{}'.format(url, userid)
-    res = requests.get(user)
-    json_o = res.json()
-    name = json_o.get('username')
+    users_url = 'https://jsonplaceholder.typicode.com/users/' + uid
+    todo_url = 'https://jsonplaceholder.typicode.com/todos/'
 
-    todos = '{}todos?userId={}'.format(url, userid)
-    res = requests.get(todos)
-    tasks = res.json()
-    l_task = []
-    for task in tasks:
-        dict_task = {"task": task.get('title'),
-                     "completed": task.get('completed'),
-                     "username": name}
-        l_task.append(dict_task)
+    try:
+        with urllib.request.urlopen(users_url) as res:
+            data = res.read().decode('utf-8')
+            user = json.loads(data)
 
-    d_task = {str(userid): l_task}
-    filename = '{}.json'.format(userid)
-    with open(filename, mode='w') as f:
-        json.dump(d_task, f)
+        with urllib.request.urlopen(todo_url) as res:
+            data = json.loads(res.read().decode('utf-8'))
+            todos = []
+            for todo in data:
+                if todo['userId'] == int(uid):
+                    todos.append(todo)
+
+        # TODO Export to JSON
+        with open("{}.json".format(uid), 'w', newline='') as json_file:
+            data = {
+                uid: [
+                    {
+                        "task": todo['title'],
+                        "completed": todo['completed'],
+                        "username": user['username']
+                    } for todo in todos
+                ]
+            }
+            json.dump(data, json_file)
+
+    except urllib.error.URLError as e:
+        print(f"Error fetching the URL: {e.reason}")
