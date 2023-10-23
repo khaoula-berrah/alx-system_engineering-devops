@@ -1,40 +1,39 @@
 #!/usr/bin/python3
-""" a Python script that, using this REST API, for a given employee ID """
+"""
+A Script that, uses a REST API, for a given employee ID, returns
+information about his/her TODO list progress
+exporting data in the CSV format.
+"""
+
 import csv
 import json
-import sys
-import urllib.error
-import urllib.request
+import requests
+from sys import argv
+
 
 if __name__ == "__main__":
-    uid = sys.argv[1]
 
-    users_url = 'https://jsonplaceholder.typicode.com/users/' + uid
-    todo_url = 'https://jsonplaceholder.typicode.com/todos/'
+    sessionReq = requests.Session()
 
-    try:
-        with urllib.request.urlopen(users_url) as res:
-            data = res.read().decode('utf-8')
-            user = json.loads(data)
+    idEmp = argv[1]
+    idURL = 'https://jsonplaceholder.typicode.com/users/{}/todos'.format(idEmp)
+    nameURL = 'https://jsonplaceholder.typicode.com/users/{}'.format(idEmp)
 
-        with urllib.request.urlopen(todo_url) as res:
-            data = json.loads(res.read().decode('utf-8'))
-            todos = []
-            for todo in data:
-                if todo['userId'] == int(uid):
-                    todos.append(todo)
+    employee = sessionReq.get(idURL)
+    employeeName = sessionReq.get(nameURL)
 
-        with open("{}.csv".format(uid), 'w', newline='') as csvfile:
-            # Use csv.QUOTE_ALL to wrap every field in quotes
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+    json_req = employee.json()
+    usr = employeeName.json()['username']
 
-            for todo in todos:
-                writer.writerow([
-                    uid,
-                    user['username'],
-                    str(todo['completed']),
-                    todo['title']
-                ])
+    totalTasks = 0
 
-    except urllib.error.URLError as e:
-        print(f"Error fetching the URL: {e.reason}")
+    for done_tasks in json_req:
+        if done_tasks['completed']:
+            totalTasks += 1
+
+    fileCSV = idEmp + '.csv'
+
+    with open(fileCSV, "w", newline='') as csvfile:
+        write = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_ALL)
+        for i in json_req:
+            write.writerow([idEmp, usr, i.get('completed'), i.get('title')])
