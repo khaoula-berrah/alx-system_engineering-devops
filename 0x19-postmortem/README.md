@@ -1,4 +1,4 @@
-# Postmortem: Unplanned Downtime in Gourmet Delights Online Ordering Platform 
+# Postmortem: Unplanned Downtime in Gourmet Delights Online Ordering Platform  
 Issue Summary:
 
 Duration:
